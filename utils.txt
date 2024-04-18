@@ -1,5 +1,0 @@
-php artisan serve --host 192.168.0.108 --port="8000"
-
-php artisan serve --host 192.168.88.172 --port="8000" vucla 57
-
-php artisan serve --host 192.168.0.104 --port="8000" randevteam 1
