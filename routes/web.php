@@ -7,6 +7,7 @@ use App\Http\Controllers\BackOffice\CategorieController;
 use App\Http\Controllers\BackOffice\DevisBController;
 use App\Http\Controllers\BackOffice\EquipeController;
 use App\Http\Controllers\BackOffice\LivraisonController;
+use App\Http\Controllers\LivraisonController as LivrController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DevisController;
 use Illuminate\Support\Facades\Route;
@@ -82,15 +83,25 @@ Route::group(['prefix' => 'devis'], function () {
 
     //reduction
     Route::get('/reduction/{id}', [DevisController::class,'reductionDevis'])->name('devis.reduction')->middleware('auth:utilisateur');
-    Route::get('/getAllObjetReduction/{id_devis}', [DevisController::class,'getAllObjetAttenteReduction'])->name('devis.allObjetReduction')->middleware('auth')->middleware('auth:utilisateur');
+    Route::get('/getAllObjetReduction/{id_devis}', [DevisController::class,'getAllObjetAttenteReduction'])->name('devis.allObjetReduction')->middleware('auth:utilisateur');
 
     //refuser
     Route::get('/refus/{id}', [DevisController::class,'refuserDevis'])->name('devis.refus')->middleware('auth:utilisateur');
-    Route::get('/getAllObjetRefuser/{id_devis}', [DevisController::class,'getAllObjetAttenteRefuser'])->name('devis.allObjetRefuser')->middleware('auth')->middleware('auth:utilisateur');
+    Route::get('/getAllObjetRefuser/{id_devis}', [DevisController::class,'getAllObjetAttenteRefuser'])->name('devis.allObjetRefuser')->middleware('auth:utilisateur');
 
     //Suppression devis
     Route::get('/supprDevis/{id_devis}', [DevisController::class,'supprimerDevis'])->name('devis.deleteDevis')->middleware('auth:utilisateur');
 
+    //Accepter date dispo
+    Route::any('/accepterDate', [DevisController::class,'acceptDateDispo'])->name('devis.acceptDateDispo')->middleware('auth:utilisateur');
+
+    //Refuser date dispo
+    Route::any('/refuserDate', [DevisController::class,'RefusDateDispo'])->name('devis.RefusDateDispo')->middleware('auth:utilisateur');
+
+});
+
+Route::group(['prefix' => 'livraison'], function () {
+    Route::get('/liste', [LivrController::class,'index'])->name('livr.liste')->middleware('auth:utilisateur');
 });
 
 Route::group(['prefix' => 'admin123456'], function () {
@@ -151,6 +162,9 @@ Route::group(['prefix' => 'devis123456'], function () {
 
     //assignation equipe
     Route::get('/redirectToAssignation/{id}', [DevisBController::class,'redirectionToAssignation'])->name('devisb.redirectionToAssignation')->middleware('auth');
+
+    //Date Indisponible
+    Route::any('/send_date', [DevisBController::class,'askDateChange'])->name('devisb.send_date')->middleware('auth');
 });
 
 //lIVRAISON
@@ -160,5 +174,6 @@ Route::group(['prefix' => 'livraison123456'], function () {
 
     //Detail planifier
     Route::get('/detailPlanifier/{id}', [LivraisonController::class,'getDetailPlanifier'])->name('livraisonb.DetailPlanifier')->middleware('auth');
+    Route::get('/suiviLivraison/{id}', [LivraisonController::class,'getSuiviLivraison'])->name('livraisonb.SuiviLivraison')->middleware('auth');
 });
 

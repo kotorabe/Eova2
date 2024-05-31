@@ -10,11 +10,23 @@ use Illuminate\Support\Facades\DB;
 
 class LivraisonController extends Controller
 {
+    public function getPosition(Request $request){
+        $equipe = Equipe::findOrFail($request->equipeIdFromStorage);
+
+        $equipe->update([
+            'position' => $request->posit
+        ]);
+    }
+
     public function getLivraison($id)
     {
         $livraison = Livraison::where('id_equipe', $id)
             ->where('date_livraison', now())
-            ->where('etat', 1)
+            ->where(function ($query) {
+                $query->where('etat', 1)
+                    ->orWhere('etat', 2)
+                    ->orWhere('etat', 3);
+            })
             ->first();
 
         if ($livraison != null) {
@@ -42,34 +54,74 @@ class LivraisonController extends Controller
             'objets' => $objets,
             'sum' => $sum
         ];
-
         return response()->json($data);
     }
 
-
-    public function beginLivraison(Request $request)
+    public function beginLivraison($id, $pos)
     {
-        // dd($request);
+        $livraison = Livraison::findOrFail($id);
+        $equipe = Equipe::findOrFail($livraison->id_equipe);
+        $updt1 = $livraison->update([
+            'etat' => 2
+        ]);
+        $updt2 = $equipe->update([
+            'etat' => 1,
+            'position' => $pos
+        ]);
+        if ($updt1 && $updt2) {
+            return response()->json(['message' => 'Success'], 200);
+        } else {
+            return response()->json(['message' => 'Photo  Error'], 404);
+        }
+    }
+
+
+    public function goLivraison(Request $request)
+    {
         $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:10000',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif',
         ]);
         $id = $request->id;
 
-        $imagePath = $request->file('image')->store('photos', 'public');
+        $imagePath = $request->file('image')->store('photos/commence', 'public');
 
         $livraison = Livraison::findOrFail($id);
         $equipe = Equipe::findOrFail($livraison->id_equipe);
         $updt1 = $livraison->update([
-            'img_recup' => $imagePath
+            'img_recup' => $imagePath,
+            'etat' => 3
         ]);
         $updt2 = $equipe->update([
-            'etat' => 1
+            'etat' => 2,
+            'position' => $request->position
         ]);
         if ($updt1 && $updt2) {
             return response()->json(['message' => 'Photo uploaded successfully', 'photo' => $imagePath], 201);
-        }else{
+        } else {
             return response()->json(['message' => 'Photo  Error', 'photo' => $imagePath], 404);
         }
-        // return response()->json($request->id);
+    }
+
+    public function FiniLivraison(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif',
+        ]);
+        $id = $request->id;
+        $imagePath = $request->file('image')->store('photos/fini', 'public');
+        $livraison = Livraison::findOrFail($id);
+        $equipe = Equipe::findOrFail($livraison->id_equipe);
+        $updt1 = $livraison->update([
+            'img_livr' => $imagePath,
+            'etat' => 4
+        ]);
+        $updt2 = $equipe->update([
+            'etat' => 0
+        ]);
+        if ($updt1 && $updt2) {
+            return response()->json(['message' => 'Photo uploaded successfully', 'photo' => $imagePath], 201);
+        } else {
+            return response()->json(['message' => 'Photo  Error', 'photo' => $imagePath], 404);
+        }
     }
 }

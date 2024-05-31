@@ -24,8 +24,10 @@ CREATE TABLE devis(
 ;;etat = 2 // accept = 0 // fini = 0 Demande envoyer
 ;;etat = 3 // accept = 0 // fini = 0 Devis envoyer
 ;;etat = 3 // accept = 1 // fini = 0 Devis accepter
+;;etat = 4 // accept = 1 // fini = 0 Planifier
 ;;etat = 0 // accept = 0 // fini = 0 Devis à discuter(Reduction)
 ;;etat = 0 // accept = 0 // fini = 1 Devis Refuser
+;;etat = 5 // accept = 0 // fini = 0 Devis en attente de validation du client
 
 CREATE TABLE addresses(
     id,
@@ -69,8 +71,13 @@ CREATE TABLE equipes(
     email,
     nom,
     password,
-    nombre_vhcl
+    id_categorie,
+    etat,
+    position
 );
+//etat = 0 Pause
+//etat = 1 Ver recup
+//etat = 2 Livraison
 
 CREATE TABLE livraisons(
     id,
@@ -82,10 +89,12 @@ CREATE TABLE livraisons(
     etat,
     date_time,
 );
+
 //etat = 1 Planifier
-//etat = 2 En route vers recuperation
+//etat = 2 Ver recup
 //etat = 3 Commencer
 //etat = 4 finir
+//etat = 5 reserver
 
 INSERT INTO type_objets(nom) VALUES('Meuble'), ('Articles de decoration'), ('Equipements electroniques'), ('Articles de rangement');
 INSERT INTO tailles(nom) VALUES ('L'),('M'),('X'),('XL'),('XXL');
@@ -96,7 +105,7 @@ tailles.id as id_taille, tailles.nom as taille, type_objets.id as id_type, type_
 JOIN type_objets ON type_objets.id = objets.id_type;
 
 --avoir la liste des devis avec les clients
-CREATE OR REPLACE VIEW v_list_devis AS SELECT devis.id, devis.id_utilisateur, devis.etat, devis.accept, devis.fini, devis.reduction, devis.updated_at, devis.deleted_at, utilisateurs.nom,
+CREATE OR REPLACE VIEW v_list_devis AS SELECT devis.id, devis.id_utilisateur, devis.etat, devis.accept, devis.fini, devis.reduction, devis.created_at, devis.updated_at, devis.deleted_at, utilisateurs.nom,
 utilisateurs.prenom, utilisateurs.email, utilisateurs.numero, addresses.date_demenagement, addresses.recuperation, addresses.livraison, addresses.acces_recup, addresses.acces_livr, addresses.coord_recup, addresses.coord_livr
  FROM devis JOIN utilisateurs ON utilisateurs.id = devis.id_utilisateur JOIN addresses ON addresses.id_devis = devis.id;
 
@@ -105,7 +114,7 @@ CREATE OR REPLACE VIEW v_list_equipe_categorie AS SELECT equipes.id, equipes.nom
 JOIN categories ON categories.id = equipes.id_categorie;
 
 -- Avoir les planning
-CREATE OR REPLACE VIEW v_list_planning_equipe AS SELECT livraisons.id, livraisons.id_devis, livraisons.id_equipe, livraisons.date_livraison, livraisons.img_recup, livraisons.img_livr, livraisons.etat, equipes.nom as equipe, equipes.email as email_equipe,
+CREATE OR REPLACE VIEW v_list_planning_equipe AS SELECT livraisons.id, livraisons.id_devis, livraisons.id_equipe, livraisons.date_livraison, livraisons.img_recup, livraisons.img_livr, livraisons.etat, equipes.nom as equipe, equipes.email as email_equipe, equipes.position,
 devis.id_utilisateur, devis.etat as etat_devis, devis.accept, devis.fini, devis.created_at, devis.updated_at, devis.reduction, utilisateurs.nom as client_nom, utilisateurs.prenom as client_prenom, utilisateurs.email FROM livraisons JOIN equipes ON equipes.id = livraisons.id_equipe
 JOIN devis ON devis.id = livraisons.id_devis JOIN utilisateurs ON utilisateurs.id = devis.id_utilisateur;
 

@@ -164,22 +164,6 @@
                                 </tr>
                             </thead>
                             <tbody class="text-center">
-                                {{-- @foreach ($objets as $objet)
-                                    <tr>
-                                        <td scope="row">{{ $objet->nom }}</td>
-                                        <td scope="row">{{ $objet->type_objet }}</td>
-                                        <td scope="row">{{ $objet->taille }}</td>
-                                        <td scope="row">{{ $objet->quantite }}</td>
-                                        <td scope="row">{{ $objet->kilo }} Kg</td>
-                                        <td scope="row">{{ number_format($objet->prix, 2, ',', ' ') }} Ar</td>
-                                        <td scope="row">
-                                            <strong>{{ number_format($objet->total, 2, ',', ' ') }} Ar</strong>
-                                        </td>
-                                        <td scope="row"><a
-                                                href="{{ route('devisb.getObjetReduction', ['id' => $objet->id]) }}"
-                                                class="btn btn-warning" id="btnSupprimer">Modifier Prix</a></td>
-                                    </tr>
-                                @endforeach --}}
                                 @foreach ($objets as $objet)
                                     <tr>
                                         <td scope="row">{{ $objet->nom }}</td>
@@ -202,12 +186,6 @@
                                             </td>
                                         @endif
 
-                                        {{-- <td scope="row">
-                                            <div class="chiffre-container">
-                                                <div class="chiffre-top">{{ number_format($objet->prix, 2, ',', ' ') }} Ar</div>
-                                                <div class="chiffre-bas">{{ number_format($objet->prix, 2, ',', ' ') }} Ar</div>
-                                              </div>
-                                        </td> --}}
                                         @if ($utilisateur->reduction == 0)
                                             <td scope="row"><strong>{{ number_format($objet->total, 2, ',', ' ') }}
                                                     Ar</strong></td>
@@ -242,9 +220,6 @@
                                     <td scope="row"><strong>TOTAL:</strong></td>
                                     <td scope="row"><strong>{{ $sum->somme_poids }} KG</strong></td>
                                     <td scope="row"><strong>---</strong></td>
-                                    {{-- <td scope="row" style="font-family:Impact">
-                                        <strong>{{ number_format($sum->somme_total, 2, ',', ' ') }} Ar
-                                    </td> --}}
                                     @if ($utilisateur->reduction == 0)
                                         <td scope="row" style="font-family:Impact">
                                             <strong>{{ number_format($sum->somme_total, 2, ',', ' ') }} Ar</strong></td>
@@ -270,7 +245,7 @@
                 <form
                     action="{{ route('devisb.sendReduction', ['id_devis' => $utilisateur->id, 'id_utilisateur' => $utilisateur->id_utilisateur]) }}"
                     method="get">
-                    <button style="margin: 1%" type="submit" class="btn btn-success">Envoyer devis</button>
+                    <button style="margin: 1%" type="submit" class="btn btn-success">Renvoyer devis</button>
                 </form>
             </div>
         </div>

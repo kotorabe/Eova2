@@ -43,7 +43,7 @@
     <main id="main">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">Déménagement de:</h5>
+                <h5 class="card-title">Suivi livraison de:</h5>
                 <!-- Dark Table -->
                 <div class="container">
                     <div class="table-responsive">
@@ -52,8 +52,8 @@
                                 <tr class="text-center">
                                     <th scope="col">#</th>
                                     <th scope="col">Client</th>
-                                    <th scope="col">Devis du:</th>
                                     <th scope="col">Déménagement pour le: </th>
+                                    <th scope="col">Statut</th>
                                     <th scope="col">Equipe en charge </th>
                                     <th scope="col">### </th>
                                 </tr>
@@ -66,18 +66,37 @@
                                             style="color: rgb(11, 162, 238)">{{ $detail->client_nom }}
                                             {{ $detail->client_prenom }}</a></td>
                                     <td scope="row">
-                                        {{ Carbon::parse($detail->created_at)->locale('fr')->isoFormat('DD MMMM YYYY') }}
+                                        {{ Carbon::parse($detail->date_livraison)->locale('fr')->isoFormat('DD MMMM YYYY') }}
                                     </td>
-                                    <td scope="row"><a href="#" id="mapLink" data-bs-toggle="modal"
-                                            data-bs-target="#ModalRecup" style="color: rgb(11, 162, 238)"
-                                            data-recup="{{ $coordonnee->coord_recup }}"
-                                            data-livr="{{ $coordonnee->coord_livr }}"
+                                    @php
+                                        $statut = '';
+                                        $couleur = '';
+                                    @endphp
+                                    @if ($detail->etat == 2)
+                                        @php
+                                            $statut = 'Vers Récupération';
+                                            $couleur = 'green';
+                                        @endphp
+                                    @elseif ($detail->etat == 3)
+                                        @php
+                                            $statut = 'Livraison';
+                                            $couleur = 'green';
+                                        @endphp
+                                    @endif
+                                    @if ($detail->etat == 3)
+                                        <td scope="row"><a href="#" data-bs-toggle="modal"
+                                                data-bs-target="#ModalImage"
+                                                style="color:{{ $couleur }}">{{ $statut }}</a></td>
+                                    @else
+                                        <td scope="row" style="color:{{ $couleur }}">{{ $statut }}</td>
+                                    @endif
+                                    <td scope="row">
+                                        <a href="#" id="mapLink" data-bs-toggle="modal" data-bs-target="#ModalRecup"
+                                            style="color: rgb(11, 162, 238)" data-recup="{{ $coordonnee->coord_recup }}"
+                                            data-livr="{{ $coordonnee->coord_livr }}" data-equipe="{{ $detail->position }}"
                                             recuperation="{{ $coordonnee->recuperation }}"
                                             livraison="{{ $coordonnee->livraison }}" onclick="openMap()">
-                                            {{ Carbon::parse($detail->date_livraison)->locale('fr')->isoFormat('DD MMMM YYYY') }}</a>
-                                    </td>
-                                    <td scope="row">
-                                        {{ $detail->equipe }}
+                                            {{ $detail->equipe }}</a>
                                     </td>
                                     <td scope="row">---</td>
                                 </tr>
@@ -88,10 +107,36 @@
             </div>
         </div>
 
+        @if ($detail->etat == 3)
+            <div class="modal fade" id="ModalImage" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                    <div class="modal-content">
+                        <div class="card">
+                            <div class="card-body">
+                                <!-- Dark Table -->
+                                <div class="container">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalLabel1">Récupération:</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                    </div>
+                                    <div class="text-center">
+                                        <img src="{{ asset('storage/' . $detail->img_recup) }}" alt="Image récupération"
+                                            class="img-fluid" style="max-width: 100%; height: auto;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+
         <div class="content-backdrop fade"></div>
         <!-- Modal delete -->
         <div class="modal fade" id="ModalUtilisateur" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog" role="document">
+            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
                 <div class="modal-content">
                     <div class="card">
                         <div class="card-body">
@@ -268,6 +313,7 @@
             var link = document.getElementById('mapLink');
             var coordinates = link.getAttribute('data-recup').split(',').map(coord => parseFloat(coord.trim()));
             var coordinates_livr = link.getAttribute('data-livr').split(',').map(coord => parseFloat(coord.trim()));
+            var position_equipe = link.getAttribute('data-equipe').split(',').map(coord => parseFloat(coord.trim()));
             var lieu_recup = link.getAttribute('recuperation');
             var lieu_livraison = link.getAttribute('livraison');
 
@@ -297,6 +343,7 @@
                     html: '<div style="background-color: red; width: 20px; height: 20px; border-radius: 50%;"></div>'
                 })
             }).addTo(map).bindPopup('Livraison: ' + lieu_livraison);
+            marker = L.marker(position_equipe).addTo(map).bindPopup('Position de l\'équipe');
 
             // Supprimer le marqueur précédent s'il existe
 
@@ -320,5 +367,7 @@
         collapse.classList.add("active");
         show.classList.add("show");
         active.classList.add("active");
+        // var list = document.querySelector('.nav-item.livraison .voir');
+        // list.classList.add("active");
     </script>
 @endsection

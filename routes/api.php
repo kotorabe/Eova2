@@ -46,7 +46,9 @@ Route::get('planning/Details/{id_devis}', [PlanningController::class, 'getDetail
 Route::get('getDataEquipe/{id}', [DashboardController::class, 'getDataEquipe']);
 
 //livraison
+Route::post('Position', [LivraisonController::class, 'getPosition']);
 Route::get('getLivraison/{id}', [LivraisonController::class, 'getLivraison']);
-
-Route::post('beginLivraison', [LivraisonController::class, 'beginLivraison']);
+Route::get('beginLivraison/{id}/{pos}', [LivraisonController::class, 'beginLivraison']);
+Route::post('Livraison', [LivraisonController::class, 'goLivraison']);
+Route::post('Fini', [LivraisonController::class, 'FiniLivraison']);
 

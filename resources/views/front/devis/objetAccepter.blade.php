@@ -7,7 +7,7 @@
     <main id="main">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">Demande de devis: </h5>
+                <h5 class="card-title">Devis accepté: </h5>
                 <!-- Dark Table -->
                 <div class="container">
                     <div class="table-responsive">

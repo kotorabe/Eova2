@@ -14,12 +14,12 @@
             transform: translate(-50%, -40%);
             background-color: #fefefe;
             padding: 5px;
-            width: 350px;
+            width: 70%;
             text-align: center;
         }
 
         #map {
-            height: 600px;
+            height: 70vh;
         }
 
         .close {
@@ -33,7 +33,7 @@
     <div id="modalMap" class="modal" style="display: none;">
         <div class="modal-map">
             <span class="close">&times;</span>
-            <div id="map" style="height: 550px"></div>
+            <div id="map" style="height: 500px"></div>
         </div>
     </div>
     <main id="main">
@@ -62,7 +62,7 @@
                                 <tr class="text-center">
                                     <th scope="col">#</th>
                                     <th scope="col">Client</th>
-                                    <th scope="col">Devis du:</th>
+                                    <th scope="col">Demande du:</th>
                                     <th scope="col">Déménagement pour le: </th>
                                     <th scope="col">Récupération: </th>
                                     <th scope="col">Livraison: </th>
@@ -92,7 +92,7 @@
                                             style="color: rgb(11, 162, 238)">{{ $utilisateur->nom }}
                                             {{ $utilisateur->prenom }}</a></td>
                                     <td scope="row">
-                                        {{ Carbon::parse($utilisateur->updated_at)->locale('fr')->isoFormat('DD MMMM YYYY') }}
+                                        {{ Carbon::parse($utilisateur->created_at)->locale('fr')->isoFormat('DD MMMM YYYY') }}
                                     </td>
                                     <td scope="row">
                                         {{ Carbon::parse($utilisateur->date_demenagement)->locale('fr')->isoFormat('DD MMMM YYYY') }}
@@ -170,28 +170,6 @@
                                 </tr>
                             </thead>
                             <tbody class="text-center">
-                                {{-- @foreach ($objets as $objet)
-                                    <tr>
-                                        <td scope="row">{{ $objet->nom }}</td>
-                                        <td scope="row">{{ $objet->type_objet }}</td>
-                                        <td scope="row">{{ $objet->taille }}</td>
-                                        <td scope="row">{{ $objet->quantite }}</td>
-                                        <td scope="row">{{ $objet->kilo }} Kg</td>
-                                        <td scope="row">{{ number_format($objet->prix, 2, ',', ' ') }} Ar</td>
-                                        <td scope="row">
-                                            <strong>{{ number_format($objet->total, 2, ',', ' ') }} Ar</strong>
-                                        </td>
-                                        @if ($objet->prix == 0 && $objet->total == 0)
-                                            <td scope="row"><a
-                                                    href="{{ route('devisb.getObjetAttente', ['id' => $objet->id]) }}"
-                                                    class="btn btn-success" id="btnSupprimer">Ajouter Prix</a></td>
-                                        @else
-                                            <td scope="row"><a
-                                                    href="{{ route('devisb.getObjetAttente', ['id' => $objet->id]) }}"
-                                                    class="btn btn-warning" id="btnSupprimer">Modifier Prix</a></td>
-                                        @endif
-                                    </tr>
-                                @endforeach --}}
                                 @foreach ($objets as $objet)
                                     <tr>
                                         <td scope="row">{{ $objet->nom }}</td>
@@ -321,6 +299,7 @@
                 maxZoom: 19,
                 attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             }).addTo(map);
+            map.invalidateSize();
 
             // Ajouter un seul marqueur si les coordonnées de récupération sont déjà présentes
 
@@ -366,6 +345,7 @@
                 maxZoom: 19,
                 attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             }).addTo(map);
+            map.invalidateSize();
 
             // Ajouter un seul marqueur si les coordonnées de récupération sont déjà présentes
 

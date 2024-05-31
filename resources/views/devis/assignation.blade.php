@@ -103,8 +103,9 @@
                             <div class="modal-body">
                                 <input type="hidden" name="id" id="id">
                                 <div class="alert alert-success" role="alert">Vous allez assigner le déménagement de
-                                    <strong>{{ $utilisateur->nom }} {{ $utilisateur->prenom }}</strong> à la team : <strong><span id="team">
-                                    </span></strong>
+                                    <strong>{{ $utilisateur->nom }} {{ $utilisateur->prenom }}</strong> à la team :
+                                    <strong><span id="team">
+                                        </span></strong>
                                 </div>
                             </div>
                             <div class="modal-footer">
@@ -242,6 +243,68 @@
                 </div>
             </div>
 
+
+            <div class="content-backdrop fade"></div>
+            <!-- Modal delete -->
+            <div class="modal fade" id="ModalEquipe" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-xl" role="document">
+                    <div class="modal-content">
+                        <div class="card">
+                            <div class="card-body">
+                                <!-- Dark Table -->
+                                <div class="container">
+                                    <hr>
+                                    <div class="table-responsive">
+                                        <table class="table">
+                                            <thead class="thead">
+                                                <tr class="text-center">
+                                                    <th scope="col"># </th>
+                                                    <th scope="col">Equipe </th>
+                                                    <th scope="col">Email </th>
+                                                    <th scope="col">Date disponible </th>
+                                                    <th scope="col">###</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="text-center">
+                                                @if($equipeDisponible != [])
+                                                <tr>
+                                                    <td scope="row">
+                                                        <form action="{{ route('devisb.send_date') }}" method="POST">
+                                                            @csrf
+                                                            @method('patch')
+                                                            <input type="hidden" name="id_equipe"
+                                                                value="{{ $equipeDisponible->id }}">
+                                                            <input type="hidden" name="id_devis"
+                                                                value="{{ $utilisateur->id }}">
+                                                            <input type="hidden" name="date_livraison"
+                                                                value="{{ $daty }}">
+                                                            <input type="hidden" name="email"
+                                                                value="{{ $utilisateur->email }}">
+                                                            {{ $equipeDisponible->id }}
+                                                    </td>
+                                                    <td scope="row">{{ $equipeDisponible->nom }}</td>
+                                                    <td scope="row">{{ $equipeDisponible->email }}</td>
+                                                    <td scope="row">
+                                                        {{ Carbon::parse($daty)->locale('fr')->isoFormat('DD MMMM YYYY') }}
+                                                    </td>
+                                                    <td scope="row">
+                                                        <button type="submit" class="btn btn-warning">Envoyer au
+                                                            client</button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                                @endif
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <!-- End Dark Table -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="card">
                 <div class="card-body">
                     <h4 class="card-title">Equipe(s) disponible(s):</h4>
@@ -265,7 +328,8 @@
                                             <td scope="row">{{ $equipe->nom }}</td>
                                             <td scope="row">{{ $equipe->email }}</td>
                                             <td scope="row"><button data-bs-toggle="modal"
-                                                    data-bs-target="#ModalAssigne" data-equipe="{{ $equipe->nom }}" data-date="{{ $utilisateur->date_demenagement }}"
+                                                    data-bs-target="#ModalAssigne" data-equipe="{{ $equipe->nom }}"
+                                                    data-date="{{ $utilisateur->date_demenagement }}"
                                                     data-id="{{ $utilisateur->id }}" data-idequipe="{{ $equipe->id }}"
                                                     class="btn btn-success">Assigner </button>
                                             </td>
@@ -273,9 +337,11 @@
                                     @empty
                                         <tr>
                                             <td scope="row">---------------</td>
+                                            <td scope="row">Aucune équipe disponible pour ce date</td>
                                             <td scope="row">---------------</td>
-                                            <td scope="row">---------------</td>
-                                            <td scope="row">---------------</td>
+                                            <td scope="row"><button data-bs-toggle="modal"
+                                                    data-bs-target="#ModalEquipe" class="btn btn-outline-success">Voir équipe
+                                                    disponible </button></td>
                                         </tr>
                                     @endforelse
                                 </tbody>
@@ -295,6 +361,7 @@
                 var equipeNom = $(this).data('equipe');
                 var DevisId = $(this).data('id');
                 var Date = $(this).data('date');
+                console.log(Date);
 
                 // Mettre à jour le contenu du span dans le modal avec le nom de l'équipe
                 $('#team').text(equipeNom);

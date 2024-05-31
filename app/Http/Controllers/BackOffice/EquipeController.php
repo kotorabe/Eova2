@@ -94,7 +94,7 @@ class EquipeController extends Controller
         try {
             $request->validate([
                 'id' => 'required|integer',
-                'nom' => 'required|string|min:3|max:15',
+                'nom' => 'required|string|min:3',
             ]);
             $equipe = Equipe::findOrFail($request->id);
             $equipe->update([

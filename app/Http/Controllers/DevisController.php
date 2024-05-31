@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Addresse;
 use App\Devis;
+use App\Equipe;
+use App\Livraison;
+use App\Mail\DateAccepter;
+use App\Mail\DateRefuser;
 use App\Mail\DevisAccepte;
 use App\Mail\DevisAttenteReduction;
 use App\Mail\RefusDevis;
@@ -52,7 +56,7 @@ class DevisController extends Controller
     }
     public function redirection(Request $request)
     {
-        $rq = $request;
+        // $rq = $request;
         $recuperation = $request->recuperation;
         $acces_recup = $request->boolean('access_recup');
         $coord_recup = $request->coordinates_recup;
@@ -73,7 +77,8 @@ class DevisController extends Controller
                 ->first();
             if ($check == null) {
                 $insert_devis = Devis::insertGetId([
-                    'id_utilisateur' => Session::get('id_utilisateur')
+                    'id_utilisateur' => Session::get('id_utilisateur'),
+                    'created_at' => now()
                 ]);
                 if ($insert_devis) {
                     Session::put('id_devis', $insert_devis);
@@ -120,7 +125,6 @@ class DevisController extends Controller
 
     public function CreateDevis(Request $request)
     {
-        //dd(Session::get('recuperation'));
         try {
             DB::beginTransaction();
             Addresse::create([
@@ -133,7 +137,7 @@ class DevisController extends Controller
                 'coord_livr' => Session::get('coord_livr'),
                 'date_demenagement' => Session::get('date_demenagement'),
             ]);
-            // Validation des données
+
             $request->validate([
                 'type' => 'required|array',
                 'objet' => 'required|array',
@@ -142,14 +146,12 @@ class DevisController extends Controller
                 'poids' => 'required|array',
             ]);
 
-            // Récupérer les données du formulaire
             $types = $request->input('type');
             $objets = $request->input('objet');
             $quantites = $request->input('quantite');
             $tailles = $request->input('taille');
             $poids = $request->input('poids');
 
-            // Parcourir les données et les enregistrer dans la base de données
             foreach ($types as $key => $type) {
                 Objet::create([
                     'id_devis' => Session::get('id_devis'),
@@ -157,12 +159,12 @@ class DevisController extends Controller
                     'id_type' => $type,
                     'nom' => $objets[$key],
                     'quantite' => $quantites[$key],
-                    'kilo' => $poids[$key],
-                    // Ajoutez d'autres champs si nécessaire
+                    'kilo' => $poids[$key]
                 ]);
             }
             $devis = Devis::findOrFail(Session::get('id_devis'));
             $devis->update([
+                'created_at' => now(),
                 'etat' => 2
             ]);
             DB::commit();
@@ -286,10 +288,6 @@ class DevisController extends Controller
                 ->where('etat', 2)
                 ->first();
             if ($check != null) {
-                /*$objet = DB::table('v_list_objet')
-                    ->where('id_devis', $id)
-                    ->orderBy('id_taille', 'asc')
-                    ->get();*/
                 $objet = DB::table('v_list_objet')
                     ->where('id_devis', $id)
                     ->orderByRaw('CASE WHEN prix = 0 THEN 0 ELSE 1 END')
@@ -423,13 +421,6 @@ class DevisController extends Controller
                     ->selectRaw('SUM(total) as somme_total, SUM(quantite * kilo) as somme_poids')
                     ->first();
                 $date_demenagement = $utilisateur->date_demenagement;
-                // return view('front.devis.recu', [
-                //     'date_demenagement' => $date_demenagement,
-                //     'utilisateur' => $utilisateur,
-                //     'objets' => $objet,
-                //     'sum' => $sum,
-                //     'title' => 'Devis reçu',
-                // ]);
                 if ($utilisateur->reduction == 0) {
                     return view('front.devis.recu', [
                         'date_demenagement' => $date_demenagement,
@@ -555,7 +546,7 @@ class DevisController extends Controller
                     ->first();
                 $client = Utilisateur::find($id_utilisateur);
                 $detail = [
-                    'date_devis' => $detailsDuDevis->updated_at,
+                    'date_devis' => $detailsDuDevis->created_at,
                     'demenagement' => $detailsDuDevis->date_demenagement,
                     'nom' => $client->nom,
                     'prenom' => $client->prenom
@@ -597,7 +588,7 @@ class DevisController extends Controller
                     ->first();
                 $client = Utilisateur::find($id_utilisateur);
                 $detail = [
-                    'date_devis' => $detailsDuDevis->updated_at,
+                    'date_devis' => $detailsDuDevis->created_at,
                     'demenagement' => $detailsDuDevis->date_demenagement,
                     'nom' => $client->nom,
                     'prenom' => $client->prenom
@@ -636,7 +627,7 @@ class DevisController extends Controller
                     ->first();
                 $client = Utilisateur::find($id_utilisateur);
                 $detail = [
-                    'date_devis' => $detailsDuDevis->updated_at,
+                    'date_devis' => $detailsDuDevis->created_at,
                     'demenagement' => $detailsDuDevis->date_demenagement,
                     'nom' => $client->nom,
                     'prenom' => $client->prenom
@@ -676,7 +667,7 @@ class DevisController extends Controller
                     ->first();
                 $client = Utilisateur::findOrFail($id_utilisateur);
                 $detail = [
-                    'date_devis' => $detailsDuDevis->updated_at,
+                    'date_devis' => $detailsDuDevis->created_at,
                     'demenagement' => $detailsDuDevis->date_demenagement,
                     'nom' => $client->nom,
                     'prenom' => $client->prenom
@@ -711,7 +702,7 @@ class DevisController extends Controller
                     ->where('deleted_at', '!=', null)
                     ->first();
                 $detail = [
-                    'date_devis' => $detailsDuDevis->updated_at,
+                    'date_devis' => $detailsDuDevis->created_at,
                     'demenagement' => $detailsDuDevis->date_demenagement,
                     'nom' => $client->nom,
                     'prenom' => $client->prenom
@@ -734,11 +725,35 @@ class DevisController extends Controller
             ->where('fini', 0)
             ->where('accept', 1)
             ->first();
+
+        $indispo = DB::table('v_list_devis')
+            ->where('id_utilisateur', Session::get('id_utilisateur'))
+            ->where('etat', 5)
+            ->where('fini', 0)
+            ->where('accept', 0)
+            ->first();
+
         $title = 'Devis accepté';
-        return view('front.devis.devisAccepter', [
-            'accepter' => $accepter,
-            'title' => $title,
-        ]);
+
+        if ($indispo === null) {
+            return view('front.devis.devisAccepter', [
+                'accepter' => $accepter,
+                'title' => $title,
+                'indispo' => 1,
+                'dispo' => []
+            ]);
+        } else {
+            $dispo = Livraison::where('id_devis', $indispo->id)
+                ->first();
+            return view('front.devis.devisAccepter', [
+                'accepter' => $indispo,
+                'title' => $title,
+                'indispo' => 2,
+                'dispo' => $dispo
+            ]);
+        }
+
+
     }
 
     public function getObjetDevisAccepter($id)
@@ -792,6 +807,67 @@ class DevisController extends Controller
                 }
             } else {
                 return response()->json(['message' => 'Forbidden.'], 404);
+            }
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function acceptDateDispo(Request $request)
+    {
+        try {
+            $id_devis = $request->id_devis;
+            $id_livraison = $request->id_livraison;
+
+            // dd($request);
+            $devis = Devis::findOrFail($id_devis);
+            $livraison = Livraison::findOrFail($id_livraison);
+
+            $updt1 = $devis->update([
+                'etat' => 4,
+                'accept' => 1
+            ]);
+
+            $updt2 = $livraison->update([
+                'etat' => 1
+            ]);
+            if ($updt1 && $updt2) {
+                $equipe = Equipe::findOrFail($livraison->id_equipe);
+                $client = Utilisateur::findOrFail($devis->id_utilisateur);
+                $detail = [
+                    // 'date_devis' => $detailsDuDevis->created_at,
+                    'date_demenagement' => $livraison->date_livraison,
+                    'equipe' => $equipe->nom,
+                ];
+                Mail::to($client->email)->send(new DateAccepter($detail));
+                return redirect()->back()->with('date_accept', 'Déménagement planifié, une email vous a été envoyer');
+            }else{
+                return redirect()->back()->with('error', 'Une erreur est survenue');
+            }
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function RefusDateDispo(Request $request)
+    {
+        try {
+            $id_devis = $request->id_devis;
+            $id_livraison = $request->id_livraison;
+
+            // dd($request);
+            $devis = Devis::findOrFail($id_devis);
+            $livraison = Livraison::findOrFail($id_livraison);
+
+            $dlt1 = $devis->delete();
+
+            $dlt2 = $livraison->delete();
+            if ($dlt1 && $dlt2) {
+                $client = Utilisateur::findOrFail($devis->id_utilisateur);
+                Mail::to($client->email)->send(new DateRefuser());
+                return redirect()->route('utilisateur.landing')->with('success_suppr_date', 'planification annulé');
+            }else{
+                return redirect()->back()->with('error', 'Une erreur est survenue');
             }
         } catch (\Exception $e) {
             return $e->getMessage();

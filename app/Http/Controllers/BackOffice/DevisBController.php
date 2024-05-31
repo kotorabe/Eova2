@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers\BackOffice;
 
+use App\Addresse;
 use App\Devis;
 use App\Http\Controllers\Controller;
 use App\Livraison;
+use App\Mail\DateIndisponible;
 use App\Mail\DemandeRepondu;
 use App\Mail\ReductionEnvoyer;
 use App\Objet;
 use App\Utilisateur;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -220,7 +223,7 @@ class DevisBController extends Controller
                         ->where('fini', 0)
                         ->first();
                     $detail = [
-                        'date_devis' => $detailsDuDevis->updated_at,
+                        'date_devis' => $detailsDuDevis->created_at,
                         'demenagement' => $detailsDuDevis->date_demenagement,
                         'nom' => $client->nom,
                         'prenom' => $client->prenom
@@ -465,7 +468,6 @@ class DevisBController extends Controller
     public function redirectionToAssignation($id)
     {
         try {
-            // $devis = Devis::findOrFail($id);
             $check = Devis::where('id', $id)
                 ->where('etat', 3)
                 ->where('fini', 0)
@@ -488,29 +490,58 @@ class DevisBController extends Controller
                     ->where('poids_total', '>=', $sum->somme_poids)
                     ->get();
                 $reduction = $utilisateur->reduction / 100;
-                if ($equipe != null) {
+                $equipesAvecDateDifferent = [];
+                if ($equipe->isNotEmpty()) {
                     foreach ($equipe as $e) {
                         $dispo = Livraison::where('id_equipe', $e->id)
                             ->where('date_livraison', '=', $utilisateur->date_demenagement)
                             ->get();
                         if ($dispo->isEmpty()) {
-                            // Ajoutez cette équipe à la liste finale
                             $equipesAvecDateDifferent[] = $e;
                         }
                     }
                     if (count($equipesAvecDateDifferent) > 0) {
-                        // Passer les équipes à la vue
                         return view('devis.assignation', [
                             'reduction' => $reduction,
                             'utilisateur' => $utilisateur,
                             'objets' => $objet,
                             'sum' => $sum,
                             'equipes' => $equipesAvecDateDifferent,
-                            'title' => 'Assignation d\'équipe'
+                            'title' => 'Assignation d\'équipe',
+                            'equipeDisponible' => []
                         ]);
                     } else {
                         // Aucune équipe disponible, définissez un message ou une variable pour l'indiquer
+                        // $aucuneEquipeDisponible = true;
+                        $disponible = [];
                         $aucuneEquipeDisponible = true;
+                        $equipe_dispo = DB::table('v_list_equipe_categorie')
+                            ->where('poids_total', '>=', $sum->somme_poids)
+                            ->get();
+
+                        // $daty = $utilisateur->date_demenagement;
+                        $daty = Carbon::createFromFormat('Y-m-d', $utilisateur->date_demenagement);
+                        while (true) {
+                            $daty->addDay();
+                            if ($daty->isSunday()) {
+                                continue;
+                            }
+                            foreach ($equipe_dispo as $ed) {
+                                $dispo = Livraison::where('id_equipe', $ed->id)
+                                    ->where('date_livraison', '=', $daty)
+                                    ->first();
+                                if ($dispo === null) {
+                                    $equipesAvecDateDifferent = $ed;
+                                    $date_d = $daty;
+                                    break 2;
+                                } else {
+                                    continue;
+                                }
+                            }
+                            if ($dispo != null) {
+                                continue;
+                            }
+                        }
 
                         // Passez la variable à la vue
                         return view('devis.assignation', [
@@ -518,22 +549,95 @@ class DevisBController extends Controller
                             'utilisateur' => $utilisateur,
                             'objets' => $objet,
                             'sum' => $sum,
-                            'aucuneEquipeDisponible' => $aucuneEquipeDisponible,
-                            'title' => 'Assignation d\'équipe'
+                            'equipeDisponible' => $equipesAvecDateDifferent,
+                            'daty' => $date_d,
+                            'title' => 'Assignation d\'équipe',
+                            'equipes' => []
                         ]);
                     }
                 } else {
+                    $disponible = [];
                     $aucuneEquipeDisponible = true;
+                    $equipe_dispo = DB::table('v_list_equipe_categorie')
+                        ->where('poids_total', '>=', $sum->somme_poids)
+                        ->get();
+                    // $daty = $utilisateur->date_demenagement;
+                    $daty = Carbon::createFromFormat('Y-m-d', $utilisateur->date_demenagement);
+                    while (true) {
+                        $daty->addDay();
+                        if ($daty->isSunday()) {
+                            continue;
+                        }
+                        foreach ($equipe_dispo as $ed) {
+                            $dispo = Livraison::where('id_equipe', $ed->id)
+                                ->where('date_livraison', '=', $daty)
+                                ->first();
+                            if ($dispo === null) {
+                                $disponible = $ed;
+                                $date_d = $daty;
+                                break 2;
+                            } else {
+                                continue;
+                            }
+                        }
+                        // if ($dispo != null) {
+                        //     continue;
+                        // }
+                    }
                     return view('devis.assignation', [
                         'reduction' => $reduction,
                         'utilisateur' => $utilisateur,
                         'objets' => $objet,
                         'sum' => $sum,
-                        'aucuneEquipeDisponible' => $aucuneEquipeDisponible,
-                        'title' => 'Assignation d\'équipe'
+                        'equipeDisponible' => $disponible,
+                        'daty' => $date_d,
+                        'title' => 'Assignation d\'équipe',
+                        'equipes' => []
                     ]);
                 }
             }
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function askDateChange(Request $request)
+    {
+        try {
+            $request->validate([
+                'id_equipe' => 'required|integer',
+                'id_devis' => 'required|integer',
+            ]);
+
+            $devis = Devis::findOrFail($request->id_devis);
+            $addresses = DB::table('addresses')
+                ->where('id_devis', $request->id_devis)
+                ->first();
+
+            $detail = [
+                'date_demenagement' => $addresses->date_demenagement,
+                'date_dispo' => $request->date_livraison
+            ];
+
+            $devis->update([
+                'etat' => 5,
+                'accept' => 0
+            ]);
+
+            $insert = Livraison::create([
+                'id_devis' => $request->id_devis,
+                'id_equipe' => $request->id_equipe,
+                'date_livraison' => $request->date_livraison,
+                'etat' => 5
+            ]);
+
+            if ($insert) {
+                Mail::to($request->email)->send(new DateIndisponible($detail));
+                return redirect()->route('devisb.allDevisAccepter')->with('send_date', 'Date disponible envoyer.');
+            } else {
+                return redirect()->route('devisb.allDevisAccepter')->with('error_send', 'Une erreur est survenue.');
+            }
+
         } catch (\Exception $e) {
             return $e->getMessage();
         }

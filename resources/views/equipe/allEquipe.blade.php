@@ -59,7 +59,7 @@
         <div class="card">
             <div class="card-body">
                 <div class="col-12">
-                    <div class="card recent-sales overflow-auto">
+                    {{-- <div class="card recent-sales overflow-auto"> --}}
 
                         <div class="card-body">
                             <h5 class="card-title">Liste équipe</span></h5>
@@ -69,7 +69,7 @@
                                     <div class="col-md-4">
                                         <select name="categorie" class="form-control">
                                             @foreach ($categories as $categorie)
-                                                <option value="{{ $categorie->id }}">{{ $categorie->nom }}</option>
+                                                <option value="{{ $categorie->id }}">{{ $categorie->nom }} ( {{ number_format($categorie->poids_total, 0, ',', ' ') }} Kg )</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -96,7 +96,7 @@
 
                         </div>
 
-                    </div>
+                    {{-- </div> --}}
                 </div>
             </div>
         </div>
@@ -119,7 +119,10 @@
                         if(equipe.etat == 0){
                             var stat = 'Pause';
                             var col = 'orange';
-                        }else{
+                        }else if(equipe.etat == 1){
+                            var stat = 'Vers récupération';
+                            var col = 'green';
+                        }else if(equipe.etat == 2){
                             var stat = 'Livraison';
                             var col = 'green';
                         }
@@ -131,11 +134,8 @@
                             '<td>' + equipe.nom + '</td>' +
                             '<td>' + equipe.email + '</td>' +
                             '<td style = "color:'+ col +'">'+ stat +'</td>' +
-                            '<td><button data-bs-toggle="modal" data-bs-target="#Modaldelete" data-id="' +
-                            equipe.id + '" class="btn btn-danger deleteclass">Supprimer</button></td>'
-                        // '<td><a href="{{ route('equipe.dltEquipe', '') }}/' + equipe.id +
-                        // '" class="btn btn-danger">Supprimer</a></td>' +
-                        // '</tr>';
+                            '<td><i class="bi bi-trash-fill text-danger" data-bs-toggle="modal" data-bs-target="#Modaldelete" data-id="' +
+                            equipe.id + '" class="btn btn-danger deleteclass"></i></td>'
                         ;
 
                         tbody.append(row);

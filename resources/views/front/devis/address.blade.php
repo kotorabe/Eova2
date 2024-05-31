@@ -69,7 +69,7 @@
         <div class="container">
             <form action="{{ route('devis.redirection') }}" method="POST">
                 @csrf
-                <h1>Veuillez un insérer les addresses.</h1>
+                <h1>Veuillez remplir tous les champs</h1>
                 <div id="form-container">
                     <!-- Premier formulaire -->
                     <div class="form-group">

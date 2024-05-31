@@ -106,20 +106,20 @@
                 </ul>
             </li>
 
-        <li class="nav-item">
-            <a class="nav-link collapsed" data-bs-target="#tables-nav" data-bs-toggle="collapse" href="#">
+        <li class="nav-item livr">
+            <a class="nav-link collapsed livr" data-bs-target="#tables-nav" data-bs-toggle="collapse" href="#">
                 <i class="bi bi-truck"></i><span>Livraison</span><i class="bi bi-chevron-down ms-auto"></i>
             </a>
-            <ul id="tables-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+            <ul id="tables-nav" class="nav-content collapse livr" data-bs-parent="#sidebar-nav">
                 <li>
-                    <a href="tables-general.html">
+                    <a class="list voir" href="{{ route('livr.liste') }}">
                         <i class="bi bi-circle"></i><span>Voir</span>
                     </a>
                 </li>
             </ul>
         </li><!-- End Tables Nav -->
 
-        <li class="nav-item">
+        {{-- <li class="nav-item">
             <a class="nav-link collapsed" data-bs-target="#components-nav" data-bs-toggle="collapse" href="#">
                 <i class="bi bi-person"></i><span>Chauffeurs et équipes</span><i
                     class="bi bi-chevron-down ms-auto"></i>
@@ -137,13 +137,13 @@
                 </li>
 
             </ul>
-        </li>
+        </li> --}}
 
-        <li class="nav-item">
+        {{-- <li class="nav-item">
             <a class="nav-link collapsed" href="#">
                 <i class="bi bi-bar-chart"></i><span>Statistiques</span></i>
             </a>
-        </li>
+        </li> --}}
 
     </ul>
 

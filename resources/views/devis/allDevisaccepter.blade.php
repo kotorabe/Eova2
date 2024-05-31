@@ -12,6 +12,34 @@
                 </div>
             </center>
         @endif
+        @if (session('send_date'))
+            <center>
+                <div class="alert alert-success">
+                    {{ session('send_date') }}
+                </div>
+            </center>
+        @endif
+        @if (session('assigner'))
+            <center>
+                <div class="alert alert-success">
+                    {{ session('assigner') }}
+                </div>
+            </center>
+        @endif
+        @if (session('error_send'))
+            <center>
+                <div class="alert alert-danger">
+                    {{ session('error_send') }}
+                </div>
+            </center>
+        @endif
+        @if (session('error_assigne'))
+            <center>
+                <div class="alert alert-danger">
+                    {{ session('error_assigne') }}
+                </div>
+            </center>
+        @endif
         <div class="card">
             <div class="card-body">
                 <h5 class="card-title">Liste des devis acceptés</h5>

@@ -17,11 +17,11 @@
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="get-tab" data-bs-toggle="tab" data-bs-target="#bordered-get"
-                            type="button" role="tab" aria-controls="profile" aria-selected="false">En cours</button>
+                            type="button" role="tab" aria-controls="profile" aria-selected="false">Livraison</button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="refus-tab" data-bs-toggle="tab" data-bs-target="#bordered-refus"
-                            type="button" role="tab" aria-controls="profile" aria-selected="false">....</button>
+                            type="button" role="tab" aria-controls="profile" aria-selected="false">En cours</button>
                     </li>
                 </ul>
                 <div class="tab-content pt-2" id="borderedTabContent">
@@ -32,7 +32,7 @@
                                     <tr class="text-center">
                                         <th scope="col">#</th>
                                         <th scope="col">Client</th>
-                                        <th scope="col">Devis du :</th>
+                                        {{-- <th scope="col">Devis du :</th> --}}
                                         <th scope="col">Equipe en charge </th>
                                         <th scope="col">Déménagement pour le:</th>
                                         <th scope="col">#</th>
@@ -43,17 +43,19 @@
                                         <tr>
                                             <td scope="row">{{ $plan->id }}</td>
                                             <td scope="row">{{ $plan->client_nom }} {{ $plan->client_prenom }}</td>
-                                            <td>{{ Carbon::parse($plan->updated_at)->locale('fr')->isoFormat('DD MMMM YYYY') }}
+                                            {{-- <td>{{ Carbon::parse($plan->created_at)->locale('fr')->isoFormat('DD MMMM YYYY') }} --}}
                                             <td scope="row">{{ $plan->equipe }}</td>
                                             </td>
                                             <td>{{ Carbon::parse($plan->date_livraison)->locale('fr')->isoFormat('DD MMMM YYYY') }}
                                             </td>
-                                            <td><a href="{{ route('livraisonb.DetailPlanifier', ['id' => $plan->id]) }}" class="btn btn-info">Voir</a></td>
+                                            <td><a href="{{ route('livraisonb.DetailPlanifier', ['id' => $plan->id]) }}"
+                                                    class="btn btn-info">Voir</a></td>
+                                            {{-- <td><a href=""><i class="bi bi-truck text-danger"></i></a></td> --}}
                                         </tr>
                                     @empty
                                         <tr>
                                             <td></td>
-                                            <td></td>
+                                            {{-- <td></td> --}}
                                             <td></td>
                                             <td>Aucune livraison planifier.</td>
                                             <td></td>
@@ -70,35 +72,35 @@
                                     <tr class="text-center">
                                         <th scope="col">#</th>
                                         <th scope="col">Client</th>
-                                        <th scope="col">Email</th>
-                                        <th scope="col">Devis du: </th>
+                                        {{-- <th scope="col">Devis du:</th> --}}
+                                        <th scope="col">Equipe en charge </th>
                                         <th scope="col">Déménagement pour le:</th>
                                         <th scope="col">#</th>
                                     </tr>
                                 </thead>
-                                {{-- <tbody class="text-center">
-                                    @forelse ($envoyers as $envoyer)
+                                <tbody class="text-center">
+                                    @forelse ($livraison as $livr)
                                         <tr>
-                                            <td scope="row">{{ $envoyer->id }}</td>
-                                            <td scope="row">{{ $envoyer->nom }} {{ $envoyer->prenom }}</td>
-                                            <td scope="row">{{ $envoyer->email }}</td>
-                                            <td>{{ Carbon::parse($envoyer->updated_at)->locale('fr')->isoFormat('DD MMMM YYYY') }}
+                                            <td scope="row">{{ $livr->id }}</td>
+                                            <td scope="row">{{ $livr->client_nom }} {{ $livr->client_prenom }}</td>
+                                            {{-- <td>{{ Carbon::parse($livr->created_at)->locale('fr')->isoFormat('DD MMMM YYYY') }} --}}
+                                            <td scope="row">{{ $livr->equipe }}</td>
                                             </td>
-                                            <td>{{ Carbon::parse($envoyer->date_demenagement)->locale('fr')->isoFormat('DD MMMM YYYY') }}
+                                            <td>{{ Carbon::parse($livr->date_livraison)->locale('fr')->isoFormat('DD MMMM YYYY') }}
                                             </td>
-                                            <td><a href="{{ route('devisb.listeObjetEnvoyer', ['id' => $envoyer->id, 'id_utilisateur' => $envoyer->id_utilisateur]) }}"
-                                                    class="btn btn-info">Voir Devis</a></td>
+                                            <td><a href="{{ route('livraisonb.DetailPlanifier', ['id' => $livr->id]) }}"
+                                                    class="btn btn-info">Voir</a></td>
                                         </tr>
                                     @empty
                                         <tr>
                                             <td></td>
+                                            {{-- <td></td> --}}
                                             <td></td>
-                                            <td></td>
-                                            <td>Aucune devis en attente de reponse.</td>
+                                            <td>Aucune livraison pour aujourd'hui.</td>
                                             <td></td>
                                         </tr>
                                     @endforelse
-                                </tbody> --}}
+                                </tbody>
                             </table>
                         </div>
                     </div>
@@ -109,35 +111,47 @@
                                     <tr class="text-center">
                                         <th scope="col">#</th>
                                         <th scope="col">Client</th>
-                                        <th scope="col">Email</th>
-                                        <th scope="col">Devis du: </th>
-                                        <th scope="col">Déménagement pour le:</th>
+                                        <th scope="col">Equipe en charge </th>
+                                        <th scope="col">Statut</th>
                                         <th scope="col">#</th>
                                     </tr>
                                 </thead>
-                                {{-- <tbody class="text-center">
-                                    @forelse ($refuser as $refus)
+                                <tbody class="text-center">
+                                    @forelse ($encours as $cours)
+                                        @php
+                                            $statut = '';
+                                            $couleur = '';
+                                        @endphp
+                                        @if ($cours->etat == 2)
+                                            @php
+                                                $statut = 'Vers Récupération';
+                                                $couleur = 'green';
+                                            @endphp
+                                        @elseif ($cours->etat == 3)
+                                            @php
+                                                $statut = 'Livraison';
+                                                $couleur = 'green';
+                                            @endphp
+                                        @endif
                                         <tr>
-                                            <td scope="row">{{ $refus->id }}</td>
-                                            <td scope="row">{{ $refus->nom }} {{ $refus->prenom }}</td>
-                                            <td scope="row">{{ $refus->email }}</td>
-                                            <td>{{ Carbon::parse($refus->updated_at)->locale('fr')->isoFormat('DD MMMM YYYY') }}
+                                            <td scope="row">{{ $cours->id }}</td>
+                                            <td scope="row">{{ $cours->client_nom }} {{ $cours->client_prenom }}</td>
+                                            <td scope="row">{{ $cours->equipe }}</td>
                                             </td>
-                                            <td>{{ Carbon::parse($refus->date_demenagement)->locale('fr')->isoFormat('DD MMMM YYYY') }}
-                                            </td>
-                                            <td><a href="{{ route('devisb.listeObjetAttente', ['id' => $refus->id, 'id_utilisateur' => $refus->id_utilisateur]) }}"
-                                                    class="btn btn-success">Démarrer la procédure</a></td>
+                                            <td scope="row" style="color:{{ $couleur }}">{{ $statut }}</td>
+                                            <td><a href="{{ route('livraisonb.SuiviLivraison', ['id' => $cours->id]) }}"
+                                                    class="btn btn-info">Voir</a></td>
                                         </tr>
                                     @empty
                                         <tr>
                                             <td></td>
+                                            {{-- <td></td> --}}
                                             <td></td>
-                                            <td></td>
-                                            <td>Aucune devis refuser.</td>
+                                            <td>Aucune livraison en cours.</td>
                                             <td></td>
                                         </tr>
                                     @endforelse
-                                </tbody> --}}
+                                </tbody>
                             </table>
                         </div>
                     </div>

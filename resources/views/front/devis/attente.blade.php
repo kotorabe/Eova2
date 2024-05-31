@@ -24,7 +24,7 @@
                             @if ($attente != null)
                                 <tr>
                                     <td scope="row">#</td>
-                                    <td scope="row">{{ Carbon::parse($attente->updated_at)->locale('fr')->isoFormat('DD MMMM YYYY') }}
+                                    <td scope="row">{{ Carbon::parse($attente->created_at)->locale('fr')->isoFormat('DD MMMM YYYY') }}
                                     </td>
                                     <td scope="row">{{ Carbon::parse($attente->date_demenagement)->locale('fr')->isoFormat('DD MMMM YYYY') }}</td>
                                     <td scope="row"><a href="{{ route('devis.listeObjetAttente', ['id' => $attente->id]) }}"
